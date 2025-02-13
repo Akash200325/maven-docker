@@ -4,13 +4,16 @@ pipeline {
     environment {
         DOCKER_IMAGE = "maven-docker-build"
         CONTAINER_NAME = "maven_build_container"
+        WORKSPACE_DIR = "C:\\Users\\akash\\.jenkins\\workspace\\Maven-Docker-Pipeline\\myapp"
     }
 
     stages {
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh 'docker build -t ${DOCKER_IMAGE} myapp'
+                    bat """
+                        docker build -t ${DOCKER_IMAGE} myapp
+                    """
                 }
             }
         }
@@ -18,11 +21,9 @@ pipeline {
         stage('Run Container and Build Maven Project') {
             steps {
                 script {
-                    def dockerWorkspace = WORKSPACE.replaceAll('C:', '/c').replaceAll('\\\\', '/')  // Convert Windows paths to Unix-style
-                    
-                    sh """
-                        docker run --rm --name ${CONTAINER_NAME} \
-                        -v "${dockerWorkspace}/myapp:/app" -w "/app" \
+                    bat """
+                        docker run --rm --name ${CONTAINER_NAME} ^
+                        -v "${WORKSPACE_DIR}:/app" -w "/app" ^
                         ${DOCKER_IMAGE} sh -c "mvn clean package"
                     """
                 }
@@ -37,7 +38,7 @@ pipeline {
 
         stage('Execute Post-Build Script') {
             steps {
-                sh 'echo "Build completed successfully"'
+                bat 'echo "Build completed successfully"'
             }
         }
     }
