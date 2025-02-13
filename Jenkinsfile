@@ -2,12 +2,24 @@ pipeline {
     agent any
 
     environment {
+        GITLAB_REPO = "https://gitlab.com/your-username/maven-docker-project.git"
         DOCKER_IMAGE = "maven-docker-build"
         CONTAINER_NAME = "maven_build_container"
         WORKSPACE_DIR = "C:\\Users\\akash\\.jenkins\\workspace\\Maven-Docker-Pipeline\\myapp"
     }
 
     stages {
+        stage('Clone Repository') {
+            steps {
+                script {
+                    bat """
+                        if exist myapp (rmdir /s /q myapp)
+                        git clone ${GITLAB_REPO} myapp
+                    """
+                }
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
                 script {
@@ -38,7 +50,12 @@ pipeline {
 
         stage('Execute Post-Build Script') {
             steps {
-                bat 'echo "Build completed successfully"'
+                script {
+                    bat """
+                        docker run --rm -v "${WORKSPACE_DIR}:/app" -w "/app" ^
+                        ${DOCKER_IMAGE} sh -c "./post_build.sh"
+                    """
+                }
             }
         }
     }
