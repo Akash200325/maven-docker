@@ -9,7 +9,7 @@ pipeline {
     stages {
         stage('Clone Repository') {
             steps {
-                git 'https://gitlab.com/akashkrao01/maven-docker-pipeline.git'
+               git branch: 'main', git 'https://gitlab.com/akashkrao01/maven-docker-pipeline.git'
             }
         }
 
