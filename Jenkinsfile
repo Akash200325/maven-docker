@@ -8,19 +8,10 @@ pipeline {
     }
 
     stages {
-        stage('Checkout Code') {
-            steps {
-                script {
-                    checkout scm
-                    sh 'ls -la'  // Debug: List files to check if Dockerfile is present
-                }
-            }
-        }
-
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh 'docker build -t ${DOCKER_IMAGE} .'
+                    sh 'docker build -t ${DOCKER_IMAGE} myapp'  // 👈 Add "myapp" to the build path
                 }
             }
         }
@@ -28,11 +19,11 @@ pipeline {
         stage('Run Container and Build Maven Project') {
             steps {
                 script {
-                    sh """
+                    sh '''
                         docker run --rm --name ${CONTAINER_NAME} \
                         -v "${WORKSPACE}/myapp:${WORK_DIR}" -w ${WORK_DIR} \
                         ${DOCKER_IMAGE} mvn clean package
-                    """
+                    '''
                 }
             }
         }
