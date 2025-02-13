@@ -16,7 +16,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh 'docker build -t ${DOCKER_IMAGE} .'
+                    sh 'docker build -t ${DOCKER_IMAGE} myapp/'  // Build image inside myapp directory
                 }
             }
         }
@@ -24,21 +24,21 @@ pipeline {
         stage('Run Container and Build Maven Project') {
             steps {
                 script {
-                    sh 'docker run --name ${CONTAINER_NAME} ${DOCKER_IMAGE}'
+                    sh 'docker run --rm --name ${CONTAINER_NAME} -v $PWD/myapp:/app -w /app ${DOCKER_IMAGE} mvn clean package'
                 }
             }
         }
 
         stage('Archive Artifacts') {
             steps {
-                archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+                archiveArtifacts artifacts: 'myapp/target/*.jar', fingerprint: true  // Adjusted path for artifacts
             }
         }
 
         stage('Execute Post-Build Script') {
             steps {
                 script {
-                    sh 'bash post_build.sh'
+                    sh 'bash myapp/post_build.sh'  // Adjusted path for post-build script
                 }
             }
         }
