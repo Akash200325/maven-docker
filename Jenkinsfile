@@ -2,28 +2,17 @@ pipeline {
     agent any
 
     environment {
-        GITLAB_REPO = "https://gitlab.com/YOUR-GITLAB-USERNAME/maven-docker-project.git"
         DOCKER_IMAGE = "maven-docker-build"
         CONTAINER_NAME = "maven_build_container"
         WORKSPACE_DIR = "C:\\Users\\akash\\.jenkins\\workspace\\Maven-Docker-Pipeline\\myapp"
     }
 
     stages {
-        stage('Clone Repository') {
-            steps {
-                script {
-                    bat """
-                        if exist myapp (rmdir /s /q myapp)
-                        git clone %GITLAB_REPO% myapp
-                    """
-                }
-            }
-        }
-
         stage('Build Docker Image') {
             steps {
                 script {
                     bat """
+                        echo "🚀 Building Docker image..."
                         docker build -t %DOCKER_IMAGE% myapp
                     """
                 }
@@ -34,9 +23,10 @@ pipeline {
             steps {
                 script {
                     bat """
+                        echo "🚀 Running Maven build inside Docker container..."
                         docker run --rm --name %CONTAINER_NAME% ^
                         -v "%WORKSPACE_DIR%:/app" -w "/app" ^
-                        %DOCKER_IMAGE% sh -c "mvn clean package"
+                        %DOCKER_IMAGE% sh -c "mvn clean package || exit 1"
                     """
                 }
             }
@@ -47,7 +37,7 @@ pipeline {
                 script {
                     bat """
                         if exist myapp\\target\\*.jar (
-                            echo "Archiving build artifacts..."
+                            echo "📦 Archiving build artifacts..."
                         ) else (
                             echo "❌ No JAR file found, build may have failed!"
                             exit /b 1
