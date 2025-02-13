@@ -4,7 +4,6 @@ pipeline {
     environment {
         DOCKER_IMAGE = "maven-docker-build"
         CONTAINER_NAME = "maven_build_container"
-        WORK_DIR = "/app"
     }
 
     stages {
@@ -23,7 +22,7 @@ pipeline {
                     sh """
                         docker run --rm --name ${CONTAINER_NAME} \
                         -v "${dockerWorkspace}/myapp:/app" -w "/app" \
-                        ${DOCKER_IMAGE} mvn clean package
+                        ${DOCKER_IMAGE} sh -c "mvn clean package"
                     """
                 }
             }
