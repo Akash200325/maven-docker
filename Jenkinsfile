@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        GITLAB_REPO = "https://gitlab.com/your-username/maven-docker-project.git"
+        GITLAB_REPO = "https://gitlab.com/YOUR-GITLAB-USERNAME/maven-docker-project.git"
         DOCKER_IMAGE = "maven-docker-build"
         CONTAINER_NAME = "maven_build_container"
         WORKSPACE_DIR = "C:\\Users\\akash\\.jenkins\\workspace\\Maven-Docker-Pipeline\\myapp"
@@ -14,7 +14,7 @@ pipeline {
                 script {
                     bat """
                         if exist myapp (rmdir /s /q myapp)
-                        git clone ${GITLAB_REPO} myapp
+                        git clone %GITLAB_REPO% myapp
                     """
                 }
             }
@@ -24,7 +24,7 @@ pipeline {
             steps {
                 script {
                     bat """
-                        docker build -t ${DOCKER_IMAGE} myapp
+                        docker build -t %DOCKER_IMAGE% myapp
                     """
                 }
             }
@@ -34,9 +34,9 @@ pipeline {
             steps {
                 script {
                     bat """
-                        docker run --rm --name ${CONTAINER_NAME} ^
-                        -v "${WORKSPACE_DIR}:/app" -w "/app" ^
-                        ${DOCKER_IMAGE} sh -c "mvn clean package"
+                        docker run --rm --name %CONTAINER_NAME% ^
+                        -v "%WORKSPACE_DIR%:/app" -w "/app" ^
+                        %DOCKER_IMAGE% sh -c "mvn clean package"
                     """
                 }
             }
@@ -44,7 +44,17 @@ pipeline {
 
         stage('Archive Artifacts') {
             steps {
-                archiveArtifacts artifacts: 'myapp/target/*.jar', fingerprint: true
+                script {
+                    bat """
+                        if exist myapp\\target\\*.jar (
+                            echo "Archiving build artifacts..."
+                        ) else (
+                            echo "❌ No JAR file found, build may have failed!"
+                            exit /b 1
+                        )
+                    """
+                    archiveArtifacts artifacts: 'myapp/target/*.jar', fingerprint: true
+                }
             }
         }
 
@@ -52,8 +62,12 @@ pipeline {
             steps {
                 script {
                     bat """
-                        docker run --rm -v "${WORKSPACE_DIR}:/app" -w "/app" ^
-                        ${DOCKER_IMAGE} sh -c "./post_build.sh"
+                        echo "✅ Build completed successfully!"
+                        if exist myapp\\post_build.sh (
+                            sh myapp/post_build.sh
+                        ) else (
+                            echo "⚠️ No post-build script found!"
+                        )
                     """
                 }
             }
