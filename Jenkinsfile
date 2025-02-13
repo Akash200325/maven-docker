@@ -4,20 +4,14 @@ pipeline {
     environment {
         DOCKER_IMAGE = "maven-docker-build"
         CONTAINER_NAME = "maven_build_container"
-        WORKSPACE_PATH = "C:/Users/akash/.jenkins/workspace/Maven-Docker-Pipeline/myapp"
+        WORK_DIR = "/app"
     }
 
     stages {
-        stage('Clone Repository') {
-            steps {
-                git branch: 'main', url: 'https://gitlab.com/akashkrao01/maven-docker-pipeline.git'
-            }
-        }
-
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh 'docker build -t maven-docker-build myapp/'  
+                    sh 'docker build -t ${DOCKER_IMAGE} .'
                 }
             }
         }
@@ -26,9 +20,9 @@ pipeline {
             steps {
                 script {
                     sh '''
-                    docker run --rm --name maven_build_container \
-                    -v "C:/Users/akash/.jenkins/workspace/Maven-Docker-Pipeline/myapp:/app" \
-                    -w "/app" maven-docker-build mvn clean package
+                        docker run --rm --name ${CONTAINER_NAME} \
+                        -v "${WORKSPACE}/myapp:${WORK_DIR}" -w ${WORK_DIR} \
+                        ${DOCKER_IMAGE} mvn clean package
                     '''
                 }
             }
@@ -42,19 +36,17 @@ pipeline {
 
         stage('Execute Post-Build Script') {
             steps {
-                script {
-                    sh 'bash myapp/post_build.sh'
-                }
+                sh 'echo "Build completed successfully"'
             }
         }
     }
 
     post {
-        success {
-            echo "✅ Pipeline executed successfully!"
-        }
         failure {
             echo "❌ Pipeline failed! Check logs for details."
+        }
+        success {
+            echo "✅ Pipeline executed successfully!"
         }
     }
 }
