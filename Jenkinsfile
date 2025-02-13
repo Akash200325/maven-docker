@@ -5,11 +5,18 @@ pipeline {
         DOCKER_IMAGE = "maven-docker-build"
         CONTAINER_NAME = "maven_build_container"
         WORK_DIR = "/app"
-        WINDOWS_PATH = "${WORKSPACE}\\myapp"
-        UNIX_PATH = "/c/Users/akash/.jenkins/workspace/Maven-Docker-Pipeline/myapp"
     }
 
     stages {
+        stage('Checkout Code') {
+            steps {
+                script {
+                    checkout scm
+                    sh 'ls -la'  // Debug: List files to check if Dockerfile is present
+                }
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
                 script {
@@ -21,10 +28,9 @@ pipeline {
         stage('Run Container and Build Maven Project') {
             steps {
                 script {
-                    def mountPath = isUnix() ? "${WORKSPACE}/myapp" : "${UNIX_PATH}"
                     sh """
                         docker run --rm --name ${CONTAINER_NAME} \
-                        -v "${mountPath}:${WORK_DIR}" -w ${WORK_DIR} \
+                        -v "${WORKSPACE}/myapp:${WORK_DIR}" -w ${WORK_DIR} \
                         ${DOCKER_IMAGE} mvn clean package
                     """
                 }
