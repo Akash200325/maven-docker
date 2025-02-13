@@ -12,7 +12,7 @@ pipeline {
             steps {
                 script {
                     bat """
-                        echo "🚀 Building Docker image..."
+                        echo "Building Docker image..."
                         docker build -t %DOCKER_IMAGE% myapp
                     """
                 }
@@ -23,7 +23,7 @@ pipeline {
             steps {
                 script {
                     bat """
-                        echo "🚀 Running Maven build inside Docker container..."
+                        echo "Running Maven build inside Docker container..."
                         docker run -d --name %CONTAINER_NAME% ^
                         -v "%WORKSPACE_DIR%:/app" -w "/app" ^
                          %DOCKER_IMAGE% sh -c "mvn clean package"
@@ -37,9 +37,9 @@ pipeline {
                 script {
                     bat """
                         if exist myapp\\target\\*.jar (
-                            echo "📦 Archiving build artifacts..."
+                            echo " Archiving build artifacts..."
                         ) else (
-                            echo "❌ No JAR file found, build may have failed!"
+                            echo " No JAR file found, build may have failed!"
                             exit /b 1
                         )
                     """
@@ -52,11 +52,11 @@ pipeline {
             steps {
                 script {
                     bat """
-                        echo "✅ Build completed successfully!"
+                        echo "Build completed successfully!"
                         if exist myapp\\post_build.sh (
                             sh myapp/post_build.sh
                         ) else (
-                            echo "⚠️ No post-build script found!"
+                            echo " No post-build script found!"
                         )
                     """
                 }
@@ -66,10 +66,10 @@ pipeline {
 
     post {
         failure {
-            echo "❌ Pipeline failed! Check logs for details."
+            echo "Pipeline failed! Check logs for details."
         }
         success {
-            echo "✅ Pipeline executed successfully!"
+            echo "Pipeline executed successfully!"
         }
     }
 }
