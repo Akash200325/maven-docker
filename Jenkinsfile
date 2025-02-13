@@ -11,7 +11,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh 'docker build -t ${DOCKER_IMAGE} myapp'  // 👈 Add "myapp" to the build path
+                    sh 'docker build -t ${DOCKER_IMAGE} myapp'  // Ensure correct build context
                 }
             }
         }
@@ -19,11 +19,12 @@ pipeline {
         stage('Run Container and Build Maven Project') {
             steps {
                 script {
-                    sh '''
+                    def dockerWorkspace = WORKSPACE.replaceAll('C:', '/c').replaceAll('\\\\', '/')
+                    sh """
                         docker run --rm --name ${CONTAINER_NAME} \
-                        -v "${WORKSPACE}/myapp:${WORK_DIR}" -w ${WORK_DIR} \
+                        -v "${dockerWorkspace}/myapp:${WORK_DIR}" -w ${WORK_DIR} \
                         ${DOCKER_IMAGE} mvn clean package
-                    '''
+                    """
                 }
             }
         }
