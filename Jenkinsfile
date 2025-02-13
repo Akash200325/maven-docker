@@ -4,6 +4,7 @@ pipeline {
     environment {
         DOCKER_IMAGE = "maven-docker-build"
         CONTAINER_NAME = "maven_build_container"
+        WORKSPACE_PATH = "C:/Users/akash/.jenkins/workspace/Maven-Docker-Pipeline/myapp"
     }
 
     stages {
@@ -16,7 +17,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh 'docker build -t ${DOCKER_IMAGE} myapp/'  // Build image inside myapp directory
+                    sh 'docker build -t maven-docker-build myapp/'  
                 }
             }
         }
@@ -24,21 +25,25 @@ pipeline {
         stage('Run Container and Build Maven Project') {
             steps {
                 script {
-                    sh 'docker run --rm --name ${CONTAINER_NAME} -v $PWD/myapp:/app -w /app ${DOCKER_IMAGE} mvn clean package'
+                    sh '''
+                    docker run --rm --name maven_build_container \
+                    -v "C:/Users/akash/.jenkins/workspace/Maven-Docker-Pipeline/myapp:/app" \
+                    -w "/app" maven-docker-build mvn clean package
+                    '''
                 }
             }
         }
 
         stage('Archive Artifacts') {
             steps {
-                archiveArtifacts artifacts: 'myapp/target/*.jar', fingerprint: true  // Adjusted path for artifacts
+                archiveArtifacts artifacts: 'myapp/target/*.jar', fingerprint: true
             }
         }
 
         stage('Execute Post-Build Script') {
             steps {
                 script {
-                    sh 'bash myapp/post_build.sh'  // Adjusted path for post-build script
+                    sh 'bash myapp/post_build.sh'
                 }
             }
         }
@@ -46,10 +51,10 @@ pipeline {
 
     post {
         success {
-            echo "Pipeline executed successfully!"
+            echo "✅ Pipeline executed successfully!"
         }
         failure {
-            echo "Pipeline failed!"
+            echo "❌ Pipeline failed! Check logs for details."
         }
     }
 }
