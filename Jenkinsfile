@@ -18,10 +18,12 @@ pipeline {
         stage('Run Container and Build Maven Project') {
             steps {
                 script {
-                    def dockerWorkspace = WORKSPACE.replaceAll('\\\\', '/').replaceAll('C:', '/c')
+                    // Convert Jenkins WORKSPACE path for Windows Docker
+                    def dockerWorkspace = WORKSPACE.replaceAll('\\\\', '/')  // Convert \ to /
+                    
                     sh """
-                        docker run --rm --name ${CONTAINER_NAME} \
-                        -v "${dockerWorkspace}/myapp:/app" -w "/app" \
+                        docker run --rm --name ${CONTAINER_NAME} ^
+                        -v "${dockerWorkspace}/myapp:C:/app" -w "C:/app" ^
                         ${DOCKER_IMAGE} sh -c "mvn clean package"
                     """
                 }
