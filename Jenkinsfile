@@ -24,9 +24,9 @@ pipeline {
                 script {
                     bat """
                         echo "🚀 Running Maven build inside Docker container..."
-                        docker run --rm --name %CONTAINER_NAME% ^
+                        docker run -d --name %CONTAINER_NAME% ^
                         -v "%WORKSPACE_DIR%:/app" -w "/app" ^
-                        %DOCKER_IMAGE% sh -c "mvn clean package || exit 1"
+                         %DOCKER_IMAGE% sh -c "mvn clean package"
                     """
                 }
             }
